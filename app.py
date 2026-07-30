@@ -91,7 +91,7 @@ st.title("💰 AI Loan Approval Predictor")
 st.write("Enter the applicant details below to predict loan approval.")
 
 if st.session_state["model_error"]:
-    st.warning("The saved model could not be loaded, so a built-in fallback predictor is being used.")
+    st.error(st.session_state["model_error"])
 
 person_age = st.number_input("Person Age", min_value=18, max_value=100, value=25)
 person_income = st.number_input("Annual Income", min_value=0, value=50000)
