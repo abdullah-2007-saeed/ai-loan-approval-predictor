@@ -173,5 +173,9 @@ if st.button("Predict Loan Default Risk", type="primary", use_container_width=Tr
                 st.success("✅ **LOW RISK**: Application satisfies standard low-risk threshold.")
                 
     except Exception as e:
-        st.error("An unexpected error occurred during prediction.")
-        raise e
+        # Crucial for Production: Log the error behind the scenes, don't crash the frontend
+        import logging
+        logging.error(f"Prediction failed: {str(e)}")
+        
+        # Friendly UI message for users instead of a raw traceback
+        st.error("An error occurred while processing your request. Please try again later.")
