@@ -145,9 +145,12 @@ input_df = input_df.astype('float32')
 st.markdown("---")
 
 if st.button("Predict Loan Default Risk", type="primary", use_container_width=True):
-    # Obtain prediction probability for positive class (Default = 1)
     try:
-        probabilities = my_model.predict_proba(input_df)[0]
+        # Convert input_df to a raw NumPy array to bypass feature name validation
+        input_data_array = input_df.to_numpy()
+        
+        # Run prediction on the array instead of the DataFrame
+        probabilities = my_model.predict_proba(input_data_array)[0]
         default_prob = probabilities[1]
         
         st.subheader("Assessment Results")
@@ -169,7 +172,6 @@ if st.button("Predict Loan Default Risk", type="primary", use_container_width=Tr
             else:
                 st.success("✅ **LOW RISK**: Application satisfies standard low-risk threshold.")
                 
-    except ValueError as e:
-        st.error("There is still a feature mismatch between the application and the trained model.")
-        # This will output the exact columns XGBoost wants vs what it got in your Streamlit logs
-        raise e 
+    except Exception as e:
+        st.error("An unexpected error occurred during prediction.")
+        raise e
