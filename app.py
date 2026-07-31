@@ -128,7 +128,16 @@ for grade in ['B', 'C', 'D', 'E', 'F', 'G']:
     raw_data[f'loan_grade_{grade}'] = 1.0 if loan_grade == grade else 0.0
 
 # Build final DataFrame ensuring column sequence matches model metadata
+# Build final DataFrame ensuring column sequence matches model metadata
 input_df = pd.DataFrame([raw_data])[model_features]
+
+# FIX: Force columns to match XGBoost's expected training data types
+# Depending on how you trained it, your model likely expects float32 or int/float mixed.
+# Converting everything to float32 is the most reliable way to satisfy XGBoost.
+input_df = input_df.astype('float32') 
+
+# Alternative FIX (uncomment the line below if you trained your model using pd.get_dummies() without modifications):
+# input_df = input_df.astype(int)
 
 # ---------------------------------------------------------
 # 4. Prediction Execution
@@ -137,25 +146,30 @@ st.markdown("---")
 
 if st.button("Predict Loan Default Risk", type="primary", use_container_width=True):
     # Obtain prediction probability for positive class (Default = 1)
-    probabilities = my_model.predict_proba(input_df)[0]
-    default_prob = probabilities[1]
-    
-    st.subheader("Assessment Results")
-    
-    res_col1, res_col2 = st.columns(2)
-    
-    with res_col1:
-        st.metric(
-            label="Calculated Default Risk",
-            value=f"{default_prob * 100:.2f}%"
-        )
-        st.progress(float(default_prob))
+    try:
+        probabilities = my_model.predict_proba(input_df)[0]
+        default_prob = probabilities[1]
+        
+        st.subheader("Assessment Results")
+        
+        res_col1, res_col2 = st.columns(2)
+        
+        with res_col1:
+            st.metric(
+                label="Calculated Default Risk",
+                value=f"{default_prob * 100:.2f}%"
+            )
+            st.progress(float(default_prob))
 
-    with res_col2:
-        # Decision threshold set at standard 50% (adjust if tuned differently)
-        if default_prob >= 0.50:
-            st.error("⚠️ **HIGH RISK**: Application flagged for potential default.")
-        elif default_prob >= 0.30:
-            st.warning("⚡ **MODERATE RISK**: Requires manual underwriting / verification.")
-        else:
-            st.success("✅ **LOW RISK**: Application satisfies standard low-risk threshold.")
+        with res_col2:
+            if default_prob >= 0.50:
+                st.error("⚠️ **HIGH RISK**: Application flagged for potential default.")
+            elif default_prob >= 0.30:
+                st.warning("⚡ **MODERATE RISK**: Requires manual underwriting / verification.")
+            else:
+                st.success("✅ **LOW RISK**: Application satisfies standard low-risk threshold.")
+                
+    except ValueError as e:
+        st.error("There is still a feature mismatch between the application and the trained model.")
+        # This will output the exact columns XGBoost wants vs what it got in your Streamlit logs
+        raise e 
