@@ -121,7 +121,7 @@ st.markdown("---")
 
 if st.button("Predict Loan Default Risk", type="primary", use_container_width=True):
     # Obtain prediction probability for positive class (Default = 1)
-    probabilities = model.predict_proba(input_df)[0]
+    probabilities = my_model.predict_proba(input_df)[0]
     default_prob = probabilities[1]
     
     st.subheader("Assessment Results")
