@@ -15,16 +15,32 @@ st.set_page_config(
 
 
 
+
+
 MODEL_PATH = Path(__file__).with_name("my_model.pkl")
 
-
+# Use st.cache_resource so it only loads once, speeding up your app
+@st.cache_resource
 def load_model():
     try:
         if MODEL_PATH.exists():
             return joblib.load(MODEL_PATH)
+        else:
+            st.session_state["model_error"] = f"Model file not found at {MODEL_PATH.absolute()}"
     except Exception as exc:
         st.session_state["model_error"] = str(exc)
     return None
+
+# FIX: You must assign the function output to the variable name used on line 124
+my_model = load_model()
+
+# Safety Check: Stop execution if the model failed to load
+if my_model is None:
+    st.error("🤖 Model could not be loaded. Please check the logs or path.")
+    if "model_error" in st.session_state:
+        st.caption(f"Error details: {st.session_state['model_error']}")
+    st.stop() # Prevents line 124 from running and crashing
+
 # ---------------------------------------------------------
 # 2. User Interface Inputs
 # ---------------------------------------------------------
