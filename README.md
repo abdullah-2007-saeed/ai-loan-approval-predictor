@@ -243,7 +243,7 @@ Then open the local URL shown in the terminal (typically `http://localhost:8501`
 ## 👤 Author
 
 **Abdullah Saeed**
-Tecveq
+at Tecveq
 
 ---
 
